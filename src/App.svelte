@@ -1,47 +1,55 @@
 <script lang="ts">
-  import svelteLogo from './assets/svelte.svg'
-  import viteLogo from '/vite.svg'
-  import Counter from './lib/Counter.svelte'
+	import { onMount, type ComponentType } from 'svelte';
+	import Counter from './Counter.svelte';
+  import TailwindCss from './TailwindCSS.svelte';
+	import IconBackspaceFilled from '@tabler/icons-svelte/dist/svelte/icons/IconBackspaceFilled.svelte';
+
+
+	let component: ComponentType;
+	component = Counter;
+	let counters: { component: ComponentType; count: number }[] = [];
+	let inputVal: string[] = [];
+	let totalCount: number;
+
+	onMount(() => {
+		addCounter(0);
+	});
+
+	function addCounter(initialCount: number) {
+		const current = [...counters];
+		current.push({ component, count: initialCount });
+		counters = current;
+		inputVal.push('');
+	}
+
+	function deleteCounter(i: number) {
+		const current = [...counters];
+		const deleted = current.splice(i, 1)[0];
+		counters = current;
+		if (deleted) {
+			totalCount -= deleted.count;
+			inputVal.splice(i, 1);
+			inputVal = [...inputVal];
+		}
+	}
+
+	$: {
+		totalCount = counters.reduce((sum, { count }) => sum + count, 0);
+	}
 </script>
 
-<main>
-  <div>
-    <a href="https://vitejs.dev" target="_blank" rel="noreferrer">
-      <img src={viteLogo} class="logo" alt="Vite Logo" />
-    </a>
-    <a href="https://svelte.dev" target="_blank" rel="noreferrer">
-      <img src={svelteLogo} class="logo svelte" alt="Svelte Logo" />
-    </a>
-  </div>
-  <h1>Vite + Svelte</h1>
-
-  <div class="card">
-    <Counter />
-  </div>
-
-  <p>
-    Check out <a href="https://github.com/sveltejs/kit#readme" target="_blank" rel="noreferrer">SvelteKit</a>, the official Svelte app framework powered by Vite!
-  </p>
-
-  <p class="read-the-docs">
-    Click on the Vite and Svelte logos to learn more
-  </p>
-</main>
-
-<style>
-  .logo {
-    height: 6em;
-    padding: 1.5em;
-    will-change: filter;
-    transition: filter 300ms;
-  }
-  .logo:hover {
-    filter: drop-shadow(0 0 2em #646cffaa);
-  }
-  .logo.svelte:hover {
-    filter: drop-shadow(0 0 2em #ff3e00aa);
-  }
-  .read-the-docs {
-    color: #888;
-  }
-</style>
+<TailwindCss />
+<div class="text-center h-screen">
+	<h1 class="py-4 text-5xl">Multiple Counter</h1>
+	<div class="grid grid-cols-1 gap-2">
+		{#each counters as { component, count }, i}
+			<div class="flex justify-center">
+				<Counter bind:count bind:input={inputVal[i]} />
+				<button on:click={() => deleteCounter(i)} class="ml-2"><IconBackspaceFilled /></button>
+			</div>
+		{/each}
+	</div>
+	<button on:click={() => addCounter(0)} class="rounded my-4 px-2 w-1/4 bg-amber-100">Add Counter</button>
+	<p class="font-bold">Total: {totalCount}</p>
+	<p class="font-bold">Title: {inputVal}</p>
+</div>
